@@ -33,30 +33,11 @@ namespace Project_TRAILLL.Services
                 string[] columnsToRemove;
                 Dictionary<string, string>[] dataDictArray = ReadTxtToDict(filePath);
 
-                //Remove rows in the Object clm
-                /* dataDictArray = dataDictArray
-                        .Where(row => !row.ContainsKey("Object") || row["Object"] != "Unreachable Bulk FC")
-                        .ToArray();
-
-                 //Trim the Object values
-                 foreach (var row in dataDictArray)
-                 {
-                     if (row.ContainsKey("Object"))
-                     {
-                         string objectValue = row["Object"];
-                         int underscoreVal = objectValue.IndexOf('_');
-                         if (underscoreVal >= 0)
-                         {
-                             row["Object"] = objectValue.Substring(0, underscoreVal);
-                         }
-                     }
-                 }*/
 
                 //Adding 2 clmns
-                dataDictArray = AddNewClmns(dataDictArray,fileName);
+                dataDictArray = AddNewClmns(dataDictArray, fileName);
 
-                //Adding to endoffile
-                dataDictArray = AddToEndClmns(dataDictArray);
+
                 //Discard rows where "FailureDescription" is not equal to "-"
                 dataDictArray = dataDictArray
                     .Where(row => !row.ContainsKey("FailureDescription") || row["FailureDescription"] == "-")
@@ -64,16 +45,25 @@ namespace Project_TRAILLL.Services
 
                 if (fileName.Contains("SOEM1_TN_RADIO_LINK_POWER"))
                 {
-                     columnsToRemove = new string[] { "NodeName", "Position", "IdLogNum" };
-                     RemovedColumnsFromData(dataDictArray, columnsToRemove);
+                    //Adding to endoffile
+                    dataDictArray = AddToEndClmns(dataDictArray);
+
+                    columnsToRemove = new string[] { "NodeName", "Position", "IdLogNum" };
+                    RemovedColumnsFromData(dataDictArray, columnsToRemove);
 
                 }
                 else if (fileName.Contains("SOEM1_TN_RFInputPower"))
                 {
-                    columnsToRemove = new string[] { "Position", "MeanRxLevel1m","IdLogNum", "FailureDescription" };
+                    dataDictArray = AddToEndClmnsFile2(dataDictArray);
+
+                    columnsToRemove = new string[] { "Position", "MeanRxLevel1m", "IdLogNum", "FailureDescription" };
                     RemovedColumnsFromData(dataDictArray, columnsToRemove);
+
+                    dataDictArray = dataDictArray
+                    .Where(row => !row.ContainsKey("FarEndTID") || row["FarEndTID"] != "----")
+                    .ToArray();
                 }
-                
+
                 WriteDictArrayToCsv(dataDictArray, csvFilePath);
                 File.Delete(filePath);
 
@@ -107,7 +97,7 @@ namespace Project_TRAILLL.Services
             }
         }*/
         ///
-        public  Dictionary<string, string>[] ReadTxtToDict(string filename)
+        public Dictionary<string, string>[] ReadTxtToDict(string filename)
         {
             string[] lines = File.ReadAllLines(filename);
             string[] headers = lines[0].Split(',');
@@ -122,16 +112,15 @@ namespace Project_TRAILLL.Services
                 {
                     dataDict[headers[j]] = values[j];
                 }
-
                 dataDictArray[i - 1] = dataDict;
             }
 
             return dataDictArray;
         }
-        
-        ///NodeName
-        
-        public  void WriteDictArrayToCsv(Dictionary<string, string>[] dataDictArray, string filename)
+
+       
+
+        public void WriteDictArrayToCsv(Dictionary<string, string>[] dataDictArray, string filename)
         {
             if (dataDictArray.Length == 0)
             {
@@ -154,9 +143,9 @@ namespace Project_TRAILLL.Services
 
         public void RemovedColumnsFromData(Dictionary<string, string>[] dataDictArray, string[] columnsToRemove)
         {
-            foreach(var dataDict in dataDictArray)
+            foreach (var dataDict in dataDictArray)
             {
-                foreach(var column in columnsToRemove)
+                foreach (var column in columnsToRemove)
                 {
                     if (dataDict.ContainsKey(column))
                     {
@@ -220,7 +209,6 @@ namespace Project_TRAILLL.Services
             }
             else
             {
-                // Handle the case where date and time information is not found in the file name
                 return "UnknownDateTime";
             }
         }
@@ -235,38 +223,189 @@ namespace Project_TRAILLL.Services
                 {
                     string objectValue = row["Object"];
 
-                    int underscoreIndex = objectValue.IndexOf('_');
-                    if (underscoreIndex >= 0)
-                    {
-                        objectValue = objectValue.Substring(0, underscoreIndex);
-                    }
+                    ExtractLinkFromObject(objectValue, out string linkValue);
+                    newRow["Link"] = linkValue;
 
-                    // Check if "." exists in the middle of the Object value
-                    string[] parts = objectValue.Split('.');
 
-                    if (parts.Length > 1)
-                    {
-                        string[] slotPortParts = parts[parts.Length - 1].Split('/');
-                        if (slotPortParts.Length == 2)s
-                        {
-                            newRow["Link"] = $"{slotPortParts[0]}/{slotPortParts[1]}"; // Format as "Slot/Port"
-                        }
-                    }
-                    else
-                    {
-                        newRow["Link"] = objectValue;
-                    }
+                    newRow["TID"] = ExtractTIDFromObject(objectValue);
+                    newRow["FarEndTID"] = ExtractFarEndTIDFromObject(objectValue);
+
+                    ExtractSlotAndPortFromObject(objectValue, out string slotValue, out string portValue);
+
+                    newRow["Slot"] = slotValue;
+                    newRow["Port"] = portValue;
+                    
                 }
 
                 newRow["Link"] = newRow.ContainsKey("Link") ? newRow["Link"] : "UnknownLinkValue";
-                newRow["TID"] = "YourTIDValue";
-                newRow["FarEndTID"] = "YourFarEndTIDValue";
-                newRow["Slot"] = "YourSlotValue";
-                newRow["Port"] = "YourPortValue";
+                newRow["TID"] = newRow.ContainsKey("TID") ? newRow["TID"] : "UnknownTIDValue";
+                newRow["FarEndTID"] = newRow.ContainsKey("FarEndTID") ? newRow["FarEndTID"] : "UnknownFarEndTIDValue"; ;
+                newRow["Slot"] = newRow.ContainsKey("Slot") ? newRow["Slot"] : "UnknownSlotValue";
+                newRow["Port"] = newRow.ContainsKey("Port") ? newRow["Port"] : "UnknownPortValue"; 
                 return newRow;
+
             }).ToArray();
         }
+        public string ExtractTIDFromObject(string objectValue)
+        {
+            // Extract the value between the first "_" and last "_"
+            int firstUnderscoreIndex = objectValue.IndexOf("__");
+            int lastUnderscoreIndex = objectValue.LastIndexOf("__");
+
+            if (firstUnderscoreIndex >= 0 && lastUnderscoreIndex >= 0 && firstUnderscoreIndex < lastUnderscoreIndex)
+            {
+                return objectValue.Substring(firstUnderscoreIndex + 2, lastUnderscoreIndex - firstUnderscoreIndex - 2);
+            }
+
+            return "UnknownTIDValue";
+        }
+
+        public string ExtractFarEndTIDFromObject(string objectValue)
+        {
+            int lastDoubleUnderscoreIndex = objectValue.LastIndexOf("__");
+
+            if (lastDoubleUnderscoreIndex >= 0)
+            {
+                return objectValue.Substring(lastDoubleUnderscoreIndex + 2);
+            }
+
+            return "UnknownFarEndTIDValue";
+        }
+
+        public void ExtractLinkFromObject(string objectValue, out string link)
+        {
+            link = "UnknownLinkValue";
+
+            int underscoreIndex = objectValue.IndexOf('_');
+            if (underscoreIndex >= 0)
+            {
+                objectValue = objectValue.Substring(0, underscoreIndex);
+            }
+
+            // Check if "." exists in the middle of the Object value
+            int dotIndex = objectValue.IndexOf(".");
+            if (dotIndex >= 0)
+            {
+                while (objectValue.StartsWith("1/"))
+                {
+                    objectValue = objectValue.Substring(2);
+                }
 
 
+                while (objectValue.EndsWith("/1"))
+                {
+                    objectValue = objectValue.Substring(0, objectValue.Length - 2);
+                }
+                objectValue = objectValue.Replace(".", "/");
+                link = objectValue;
+            }
+            else
+            {
+                while (objectValue.StartsWith("1/"))
+                {
+                    objectValue = objectValue.Substring(2);
+                }
+                link = objectValue;
+            }
+        }
+
+        public void ExtractSlotAndPortFromObject(string objectValue, out string slot, out string port)
+        {
+            slot = "UnknownSlotVal";
+            port = "UnknownPortVal";
+
+            int firstUnderscoreIndex = objectValue.IndexOf("__");
+
+            if (firstUnderscoreIndex >= 0)
+            {
+                string slotPortPart = objectValue.Substring(0, firstUnderscoreIndex);
+                string[] slotPortArray = slotPortPart.Split('+');
+
+                if (slotPortArray.Length > 1)
+                {
+                    // Handle Case 1: Multiple slots
+                    foreach (var slotPort in slotPortArray)
+                    {
+                        string[] slotPortPair = slotPort.Split('/');
+                        if (slotPortPair.Length == 2)
+                        {
+                            slot = slotPortPair[0];
+                            port = slotPortPair[1];
+
+                        }
+                    }
+                }
+                else
+                {
+                    // Handle Case 2: Single slot
+                    string[] slotPortPair = slotPortPart.Split('/');
+                    
+                    if (slotPortPair.Length >= 1)
+                    {
+                        slot = slotPortPair[1];
+                        port = "1";
+                    }
+                }
+            }
+        }
+
+        public Dictionary<string, string>[] AddToEndClmnsFile2(Dictionary<string, string>[] dataDictArray)
+        {
+            return dataDictArray.Select(row =>
+            {
+                Dictionary<string, string> newRow = new Dictionary<string, string>(row); // Create a new dictionary to preserve existing data
+                if (row.ContainsKey("Object"))
+                {
+                    string objectValue = row["Object"];
+
+                    ExtractSlot(objectValue, out string slotValue);
+                    newRow["Slot"] = slotValue;
+
+                    ExtractPort(objectValue, out string portValue);
+                    newRow["Port"]= portValue;
+                }
+
+                newRow["Slot"] = newRow.ContainsKey("Slot") ? newRow["Slot"] : "UnknownSlotValue";
+                newRow["Port"] = newRow.ContainsKey("Port") ? newRow["Port"] : "UnknownPortValue";
+                return newRow;
+
+            }).ToArray();
+
+        }
+
+        public static void ExtractSlot(string objectValue, out string slot)
+        {
+            slot = "UnknownSlotValue";
+            
+            // Split the Object value by "+" and take the first part
+            string[] objectParts = objectValue.Split('+');
+            if (objectParts.Length > 0)
+            {
+                // Replace ".1" with "+"
+                string slotPart = objectParts[0].Replace(".1", "+");
+
+                if (slotPart.EndsWith("/1"))
+                {
+                    slotPart = slotPart.Substring(0, slotPart.Length - 2);
+                }
+
+                slot = slotPart;
+            }
+        }
+        public static void ExtractPort(string objectValue, out string port)
+        {
+            port = "UnknownPortValue";
+
+            int lastDotIndex = objectValue.LastIndexOf('.');
+            if (lastDotIndex >= 0)
+            {
+                port = objectValue.Substring(lastDotIndex + 1);
+
+                if (port.EndsWith("/1"))
+                {
+                    port = port.Substring(0, port.Length - 2);
+                }
+            }
+        }
     }
 }

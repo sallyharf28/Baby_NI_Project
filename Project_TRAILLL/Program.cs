@@ -13,7 +13,7 @@ var app = builder.Build();
 
 WatcherService watcherService = new WatcherService();
 watcherService.Main();
-ParserService parserService = new ParserService(@"C:\Users\sally\Desktop\2023\Parser");
+//ParserService parserService = new ParserService(@"C:\Users\sally\Desktop\2023\Parser");
 //parserService.ProcessTextFile();
 
 // Configure the HTTP request pipeline.

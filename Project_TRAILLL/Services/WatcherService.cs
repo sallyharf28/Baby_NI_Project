@@ -34,6 +34,7 @@ namespace Project_TRAILLL.Services
                 Directory.CreateDirectory(archiveDir);
 
             string[] existingTextFiles = Directory.GetFiles(directoryToMonitor, "*.txt");
+
             foreach (string filePath in existingTextFiles)
             {
                 string fileName = Path.GetFileName(filePath);
@@ -44,12 +45,15 @@ namespace Project_TRAILLL.Services
                 {
                     File.Copy(filePath, parserDestinationPath);
                     Console.WriteLine($"Copied {fileName} to the 'parser' folder.");
+                    ParserService parserService = new ParserService(@"C:\Users\sally\Desktop\2023\Parser");
+
                 }
 
                 if (!File.Exists(archiveDestinationPath))
                 {
                     File.Move(filePath, archiveDestinationPath);
                     Console.WriteLine($"Moved {fileName} to the 'archive' folder.");
+
                 }
             }
 
@@ -74,6 +78,8 @@ namespace Project_TRAILLL.Services
                 string parserFilePath = Path.Combine(parserDir, fileName);
                 File.Move(e.FullPath, parserFilePath);
                 Console.WriteLine($"Copied {fileName} to the 'parser' folder.");
+                ParserService parserService = new ParserService(@"C:\Users\sally\Desktop\2023\Parser");
+
             }
             else
             {
@@ -82,7 +88,7 @@ namespace Project_TRAILLL.Services
             }
 
         }
-        //  ParserService parserService = new ParserService(@"C:\Users\User\Desktop\2023\Parser");
+        
 
 
     }
