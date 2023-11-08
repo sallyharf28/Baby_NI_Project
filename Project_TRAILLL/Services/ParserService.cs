@@ -14,10 +14,11 @@ namespace Project_TRAILLL.Services
     public class ParserService
     {
         public readonly string parserDir;
-
+        
         public ParserService(string parserDir)
         {
             this.parserDir = parserDir;
+            
             ProcessTextFile();
 
         }
@@ -35,6 +36,7 @@ namespace Project_TRAILLL.Services
 
 
                 //Adding 2 clmns
+                
                 dataDictArray = AddNewClmns(dataDictArray, fileName);
 
 
@@ -66,8 +68,11 @@ namespace Project_TRAILLL.Services
 
                 WriteDictArrayToCsv(dataDictArray, csvFilePath);
                 File.Delete(filePath);
-
+        
                 Console.WriteLine($"Converted {fileName} to CSV format.");
+                LoaderService loaderService = new LoaderService();
+                loaderService.LoadCsvFile(csvFilePath);
+                   
             }
 
         }
@@ -154,16 +159,18 @@ namespace Project_TRAILLL.Services
                 }
             }
         }
+        
+        
 
         public Dictionary<string, string>[] AddNewClmns(Dictionary<string, string>[] dataDictArray, string fileName)
         {
             return dataDictArray.Select(row =>
             {
                 Dictionary<string, string> newRow = new Dictionary<string, string>
-        {
-            { "Network_SID", CalculateHashVal(row["NeAlias"] + row["NeType"]) },
-            { "DateTime_Key", ExtractDateTime(fileName)}
-        };
+                {
+                    { "Network_SID",Math.Abs( CalculateHashVal(row["NeAlias"] + row["NeType"]).GetHashCode()).ToString() },
+                    { "DateTime_Key", ExtractDateTime(fileName)}
+                };
                 foreach (var kvp in row)
                 {
                     newRow.Add(kvp.Key, kvp.Value);
@@ -185,6 +192,7 @@ namespace Project_TRAILLL.Services
                 return hash.ToString();
             }
         }
+     
 
         public string ExtractDateTime(string fileName)
         {
@@ -213,9 +221,45 @@ namespace Project_TRAILLL.Services
             }
         }
 
+        /* public Dictionary<string, string>[] AddToEndClmns(Dictionary<string, string>[] dataDictArray)
+         {
+             return dataDictArray.Select(row =>
+             {
+                 Dictionary<string, string> newRow = new Dictionary<string, string>(row); // Create a new dictionary to preserve existing data
+
+                 if (row.ContainsKey("Object"))
+                 {
+                     string objectValue = row["Object"];
+
+                     ExtractLinkFromObject(objectValue, out string linkValue);
+                     newRow["Link"] = linkValue;
+
+
+                     newRow["TID"] = ExtractTIDFromObject(objectValue);
+                     newRow["FarEndTID"] = ExtractFarEndTIDFromObject(objectValue);
+
+                     ExtractSlotAndPortFromObject(objectValue, out string slotValue, out string portValue);
+
+                     newRow["Slot"] = slotValue;
+                     newRow["Port"] = portValue;
+
+                 }
+
+                 newRow["Link"] = newRow.ContainsKey("Link") ? newRow["Link"] : "UnknownLinkValue";
+                 newRow["TID"] = newRow.ContainsKey("TID") ? newRow["TID"] : "UnknownTIDValue";
+                 newRow["FarEndTID"] = newRow.ContainsKey("FarEndTID") ? newRow["FarEndTID"] : "UnknownFarEndTIDValue"; ;
+                 newRow["Slot"] = newRow.ContainsKey("Slot") ? newRow["Slot"] : "UnknownSlotValue";
+                 newRow["Port"] = newRow.ContainsKey("Port") ? newRow["Port"] : "UnknownPortValue"; 
+                 return newRow;
+
+             }).ToArray();
+         }*/
+
         public Dictionary<string, string>[] AddToEndClmns(Dictionary<string, string>[] dataDictArray)
         {
-            return dataDictArray.Select(row =>
+            List<Dictionary<string, string>> resultRows = new List<Dictionary<string, string>>();
+
+            foreach (var row in dataDictArray)
             {
                 Dictionary<string, string> newRow = new Dictionary<string, string>(row); // Create a new dictionary to preserve existing data
 
@@ -226,26 +270,22 @@ namespace Project_TRAILLL.Services
                     ExtractLinkFromObject(objectValue, out string linkValue);
                     newRow["Link"] = linkValue;
 
-
                     newRow["TID"] = ExtractTIDFromObject(objectValue);
                     newRow["FarEndTID"] = ExtractFarEndTIDFromObject(objectValue);
-
-                    ExtractSlotAndPortFromObject(objectValue, out string slotValue, out string portValue);
-
-                    newRow["Slot"] = slotValue;
-                    newRow["Port"] = portValue;
-                    
                 }
 
                 newRow["Link"] = newRow.ContainsKey("Link") ? newRow["Link"] : "UnknownLinkValue";
                 newRow["TID"] = newRow.ContainsKey("TID") ? newRow["TID"] : "UnknownTIDValue";
-                newRow["FarEndTID"] = newRow.ContainsKey("FarEndTID") ? newRow["FarEndTID"] : "UnknownFarEndTIDValue"; ;
-                newRow["Slot"] = newRow.ContainsKey("Slot") ? newRow["Slot"] : "UnknownSlotValue";
-                newRow["Port"] = newRow.ContainsKey("Port") ? newRow["Port"] : "UnknownPortValue"; 
-                return newRow;
+                newRow["FarEndTID"] = newRow.ContainsKey("FarEndTID") ? newRow["FarEndTID"] : "UnknownFarEndTIDValue";
 
-            }).ToArray();
+                // Call the method to extract slot and port values
+                ExtractSlotAndPortFromLink(newRow, resultRows);
+            }
+
+            return resultRows.ToArray();
         }
+
+
         public string ExtractTIDFromObject(string objectValue)
         {
             // Extract the value between the first "_" and last "_"
@@ -309,41 +349,37 @@ namespace Project_TRAILLL.Services
             }
         }
 
-        public void ExtractSlotAndPortFromObject(string objectValue, out string slot, out string port)
+        
+        public void ExtractSlotAndPortFromLink(Dictionary<string,string> row, List<Dictionary<string,string>> resultRows)
         {
-            slot = "UnknownSlotVal";
-            port = "UnknownPortVal";
-
-            int firstUnderscoreIndex = objectValue.IndexOf("__");
-
-            if (firstUnderscoreIndex >= 0)
+            if (row.ContainsKey("Link"))
             {
-                string slotPortPart = objectValue.Substring(0, firstUnderscoreIndex);
-                string[] slotPortArray = slotPortPart.Split('+');
+                string linkValue = row["Link"];
+                var slotValues = linkValue.Split('+');
 
-                if (slotPortArray.Length > 1)
+                if (slotValues.Length > 1)
                 {
-                    // Handle Case 1: Multiple slots
-                    foreach (var slotPort in slotPortArray)
+                    foreach (var slot in slotValues)
                     {
-                        string[] slotPortPair = slotPort.Split('/');
-                        if (slotPortPair.Length == 2)
+                        var clonedRow = new Dictionary<string, string>(row);
+                        clonedRow["Slot"] = slot;
+                        if (clonedRow["Slot"].EndsWith("/1"))
                         {
-                            slot = slotPortPair[0];
-                            port = slotPortPair[1];
-
+                            clonedRow["Slot"] = clonedRow["Slot"].Substring(0, clonedRow["Slot"].Length - 2);
                         }
+                        clonedRow["Port"] = "1"; // Port is set to 1 for each slot value
+                        resultRows.Add(clonedRow);
                     }
                 }
                 else
                 {
                     // Handle Case 2: Single slot
-                    string[] slotPortPair = slotPortPart.Split('/');
-                    
-                    if (slotPortPair.Length >= 1)
+                    string[] slotPort = slotValues[0].Split('/');
+                    if (slotPort.Length == 2)
                     {
-                        slot = slotPortPair[1];
-                        port = "1";
+                        row["Slot"] = slotPort[0];
+                        row["Port"] = slotPort[1];
+                        resultRows.Add(row);
                     }
                 }
             }
@@ -358,8 +394,11 @@ namespace Project_TRAILLL.Services
                 {
                     string objectValue = row["Object"];
 
-                    ExtractSlot(objectValue, out string slotValue);
-                    newRow["Slot"] = slotValue;
+                     ExtractSlot(objectValue, out string slotValue);
+                     newRow["Slot"] = slotValue;
+                    
+                   /* List<Dictionary<string, string>> rowsWithSlots = ExtractSlot(objectValue, newRow);
+                    newRow = rowsWithSlots.Last();*/
 
                     ExtractPort(objectValue, out string portValue);
                     newRow["Port"]= portValue;
@@ -379,6 +418,7 @@ namespace Project_TRAILLL.Services
             
             // Split the Object value by "+" and take the first part
             string[] objectParts = objectValue.Split('+');
+
             if (objectParts.Length > 0)
             {
                 // Replace ".1" with "+"
@@ -391,7 +431,49 @@ namespace Project_TRAILLL.Services
 
                 slot = slotPart;
             }
+            
         }
+
+       /* public static List<Dictionary<string, string>> ExtractSlot(string objectValue, Dictionary<string, string> originalRow)
+        {
+            // Create a list to store the resulting rows
+            List<Dictionary<string, string>> resultRows = new List<Dictionary<string, string>>();
+
+            // Split the Object value by "+" to handle cases like "1/15.1/1" or "1/15+16/1"
+            if (objectValue.Contains("+"))
+            {
+                string[] slotParts = objectValue.Split('+');
+
+                foreach (string slotPart in slotParts)
+                {
+                    string slotValue = slotPart.Replace(".1", "+");
+
+                    if (slotValue.EndsWith("/1"))
+                    {
+                        slotValue = slotValue.Substring(0, slotValue.Length - 2);
+                    }
+
+                    Dictionary<string, string> newRow = new Dictionary<string, string>(originalRow);
+                    newRow["Slot"] = slotValue;
+                    resultRows.Add(newRow);
+                }
+            }
+            else
+            {
+                string slotValue = objectValue.Replace(".1", "+");
+
+                if (slotValue.EndsWith("/1"))
+                {
+                    slotValue = slotValue.Substring(0, slotValue.Length - 2);
+                }
+
+                originalRow["Slot"] = slotValue;
+                resultRows.Add(originalRow);
+            }
+
+            return resultRows;
+        }*/
+
         public static void ExtractPort(string objectValue, out string port)
         {
             port = "UnknownPortValue";

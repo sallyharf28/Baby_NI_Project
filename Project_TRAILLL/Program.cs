@@ -15,6 +15,9 @@ WatcherService watcherService = new WatcherService();
 watcherService.Main();
 //ParserService parserService = new ParserService(@"C:\Users\sally\Desktop\2023\Parser");
 //parserService.ProcessTextFile();
+//LoaderService loaderService = new LoaderService(@"C:\Users\User\Desktop\2023\Parser");
+//oaderService.Start();
+//loaderService.LoadCsvFile(@"C:\Users\User\Desktop\2023\Parser");
 
 // Configure the HTTP request pipeline.
 /*if (app.Environment.IsDevelopment())

@@ -12,9 +12,10 @@ namespace Project_TRAILLL.Services
 {
     public class WatcherService
     {
-        public static string directoryToMonitor = "C:\\Users\\sally\\Desktop\\2023";
+        public static string directoryToMonitor = "C:\\Users\\User\\Desktop\\2023";
         public string parserDir = Path.Combine(directoryToMonitor, "Parser");
         public string archiveDir = Path.Combine(directoryToMonitor, "Archive");
+   
 
 
         public void Main()
@@ -32,6 +33,7 @@ namespace Project_TRAILLL.Services
 
             if (!Directory.Exists(archiveDir))
                 Directory.CreateDirectory(archiveDir);
+            
 
             string[] existingTextFiles = Directory.GetFiles(directoryToMonitor, "*.txt");
 
@@ -45,7 +47,8 @@ namespace Project_TRAILLL.Services
                 {
                     File.Copy(filePath, parserDestinationPath);
                     Console.WriteLine($"Copied {fileName} to the 'parser' folder.");
-                    ParserService parserService = new ParserService(@"C:\Users\sally\Desktop\2023\Parser");
+                    ParserService parserService = new ParserService(@"C:\Users\User\Desktop\2023\Parser");
+                  //  LoaderService loaderService = new LoaderService(@"C:\Users\User\Desktop\2023\Parser");
 
                 }
 
@@ -78,8 +81,8 @@ namespace Project_TRAILLL.Services
                 string parserFilePath = Path.Combine(parserDir, fileName);
                 File.Move(e.FullPath, parserFilePath);
                 Console.WriteLine($"Copied {fileName} to the 'parser' folder.");
-                ParserService parserService = new ParserService(@"C:\Users\sally\Desktop\2023\Parser");
-
+                ParserService parserService = new ParserService(@"C:\Users\User\Desktop\2023\Parser");
+               // LoaderService loaderService = new LoaderService(@"C:\Users\User\Desktop\2023\Parser");
             }
             else
             {
