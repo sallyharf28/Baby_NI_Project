@@ -7,38 +7,15 @@ using Vertica.Data.VerticaClient;
 
 namespace Project_TRAILLL.Services
 {
-    public class LoaderService
+    public class LoaderService : ILoaderService
     {
-        /*private string parserDir;
-        private FileSystemWatcher fileWatcher;
+        private readonly IAggregationService _aggregationService;
 
-        public LoaderService(string loaderDir)
+        public LoaderService(IAggregationService aggregationService)
         {
-            this.parserDir = loaderDir;
-
-            fileWatcher = new FileSystemWatcher(parserDir);
-            fileWatcher.Filter = "*.csv";
-            fileWatcher.Created += OnCsvFileCreated;
-            fileWatcher.EnableRaisingEvents = true;
-        }
-
-        public void Start()
-        {
-            OnCsvFileCreated(this,null);
-            Console.WriteLine("Loader service is running and monitoring for new CSV files.");
+            _aggregationService = aggregationService;
 
         }
-
-        public void OnCsvFileCreated(object sender, FileSystemEventArgs e)
-        {
-            // Handle the new CSV file creation event
-           
-                string newCsvFile = e.FullPath;
-                LoadCsvFile(newCsvFile);
-               Console.WriteLine("hello its me");
-            
-            }
-        */
 
         public void LoadCsvFile(string csvFilePath)
         
@@ -73,6 +50,7 @@ namespace Project_TRAILLL.Services
 
                     using (VerticaCommand command = new VerticaCommand($"COPY {targetTableName} FROM LOCAL '{csvFilePath}' DELIMITER ',' skip 1;", connection))
                     {
+                        //copies data from csv into tables
                         command.ExecuteNonQuery();
                     }
 
@@ -83,6 +61,13 @@ namespace Project_TRAILLL.Services
             {
                 Console.WriteLine($"Error: {ex.Message}");
             }
+
+            //AggregationService aggService = new AggregationService(connectionString);
+            //aggService.AggragateHourlyData();
+            //aggService.AggregateDailyData();    
+
+            _aggregationService.AggragateHourlyData();
+            _aggregationService.AggregateDailyData();
         }
     }
 

@@ -8,54 +8,65 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Collections;
 
 namespace Project_TRAILLL.Services
 {
-    public class ParserService
+    public class ParserService : IParserService
     {
-        public readonly string parserDir;
-        
-        public ParserService(string parserDir)
-        {
-            this.parserDir = parserDir;
-            
-            ProcessTextFile();
+        public string parserDir { get; set; }
 
+       // private readonly ILogger _logger;
+        private readonly ILoaderService _loaderService;
+       
+        public ParserService(ILoaderService loaderService)
+        {
+          
+            _loaderService = loaderService;
+            
         }
 
         public void ProcessTextFile()
         {
             string[] textFiles = Directory.GetFiles(parserDir, "*.txt");
 
+           
             foreach (string filePath in textFiles)
             {
                 string fileName = Path.GetFileName(filePath);
                 string csvFilePath = Path.ChangeExtension(filePath, ".csv");
+
                 string[] columnsToRemove;
+                //each dict represents a row of data with keys as clmn name and values as data in each clmn
                 Dictionary<string, string>[] dataDictArray = ReadTxtToDict(filePath);
 
-
-                //Adding 2 clmns
-                
+                //Adding 2 clmns(network_sid, datetime_key) for both files 
                 dataDictArray = AddNewClmns(dataDictArray, fileName);
-
 
                 //Discard rows where "FailureDescription" is not equal to "-"
                 dataDictArray = dataDictArray
                     .Where(row => !row.ContainsKey("FailureDescription") || row["FailureDescription"] == "-")
                     .ToArray();
 
+
                 if (fileName.Contains("SOEM1_TN_RADIO_LINK_POWER"))
                 {
-                    //Adding to endoffile
+                    //Adding to endoffile the link,tid,farendtid,slot,port
                     dataDictArray = AddToEndClmns(dataDictArray);
 
+                    //Discarding all Unreachablebulkfc 
+                    dataDictArray = dataDictArray
+                       .Where(row => !row.ContainsKey("Object") || row["Object"] != "Unreachable Bulk FC")
+                       .ToArray();
+
+                    //Discarded clmns
                     columnsToRemove = new string[] { "NodeName", "Position", "IdLogNum" };
                     RemovedColumnsFromData(dataDictArray, columnsToRemove);
 
                 }
                 else if (fileName.Contains("SOEM1_TN_RFInputPower"))
                 {
+                    //Adding slot,port
                     dataDictArray = AddToEndClmnsFile2(dataDictArray);
 
                     columnsToRemove = new string[] { "Position", "MeanRxLevel1m", "IdLogNum", "FailureDescription" };
@@ -70,42 +81,19 @@ namespace Project_TRAILLL.Services
                 File.Delete(filePath);
         
                 Console.WriteLine($"Converted {fileName} to CSV format.");
-                LoaderService loaderService = new LoaderService();
-                loaderService.LoadCsvFile(csvFilePath);
-                   
-            }
+               // _logger.LogInformation("Converted {fileName} to CSV format.", fileName);
 
+                _loaderService.LoadCsvFile(csvFilePath);
+                
+
+            }
         }
 
-        /*public static void ConvertTxtToCsv(string inputFilePath, string outputFilePath)
-        {
-            try
-            {
-                using (var inputFile = new StreamReader(inputFilePath))
-                using (var outputFile = new StreamWriter(outputFilePath))
-                {
-                    while (!inputFile.EndOfStream)
-                    {
-                        string line = inputFile.ReadLine();
-                        string[] values = line.Split(',');
-                        string csvLine = string.Join(",", values);
-
-                        outputFile.WriteLine(csvLine);
-                    }
-
-                    Console.WriteLine($"Conversion completed. Data from {inputFilePath} is saved to {outputFilePath}.");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"An error occurred: {ex.Message}");
-            }
-        }*/
-        ///
         public Dictionary<string, string>[] ReadTxtToDict(string filename)
         {
+            //Read all lines from file
             string[] lines = File.ReadAllLines(filename);
-            string[] headers = lines[0].Split(',');
+            string[] headers = lines[0].Split(','); 
             Dictionary<string, string>[] dataDictArray = new Dictionary<string, string>[lines.Length - 1];
 
             for (int i = 1; i < lines.Length; i++)
@@ -117,13 +105,10 @@ namespace Project_TRAILLL.Services
                 {
                     dataDict[headers[j]] = values[j];
                 }
-                dataDictArray[i - 1] = dataDict;
+                dataDictArray[i - 1] = dataDict; //adding the dict representing the current row to the arraywhy
             }
-
             return dataDictArray;
         }
-
-       
 
         public void WriteDictArrayToCsv(Dictionary<string, string>[] dataDictArray, string filename)
         {
@@ -159,9 +144,7 @@ namespace Project_TRAILLL.Services
                 }
             }
         }
-        
-        
-
+          
         public Dictionary<string, string>[] AddNewClmns(Dictionary<string, string>[] dataDictArray, string fileName)
         {
             return dataDictArray.Select(row =>
@@ -183,21 +166,20 @@ namespace Project_TRAILLL.Services
         {
             using (MD5 md5 = MD5.Create())
             {
-                byte[] data = md5.ComputeHash(Encoding.UTF8.GetBytes(input));
+                byte[] data = md5.ComputeHash(Encoding.UTF8.GetBytes(input)); //converts the input string into a byte array
                 StringBuilder hash = new StringBuilder();
                 for (int i = 0; i < data.Length; i++)
                 {
-                    hash.Append(data[i].ToString("x2"));
+                    hash.Append(data[i].ToString("x2")); //ensuring that each byte represented by 2 chars
                 }
                 return hash.ToString();
             }
         }
-     
-
+        
         public string ExtractDateTime(string fileName)
         {
-            // Extract date and time information from the file name based on the pattern
-            string pattern = @"_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})";
+            // Extract date and time info from the file name based on pattern
+            string pattern = @"_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})"; //Y,M,D_H,M,S
             Match match = Regex.Match(fileName, pattern);
 
             if (match.Success && match.Groups.Count == 7)
@@ -221,40 +203,7 @@ namespace Project_TRAILLL.Services
             }
         }
 
-        /* public Dictionary<string, string>[] AddToEndClmns(Dictionary<string, string>[] dataDictArray)
-         {
-             return dataDictArray.Select(row =>
-             {
-                 Dictionary<string, string> newRow = new Dictionary<string, string>(row); // Create a new dictionary to preserve existing data
-
-                 if (row.ContainsKey("Object"))
-                 {
-                     string objectValue = row["Object"];
-
-                     ExtractLinkFromObject(objectValue, out string linkValue);
-                     newRow["Link"] = linkValue;
-
-
-                     newRow["TID"] = ExtractTIDFromObject(objectValue);
-                     newRow["FarEndTID"] = ExtractFarEndTIDFromObject(objectValue);
-
-                     ExtractSlotAndPortFromObject(objectValue, out string slotValue, out string portValue);
-
-                     newRow["Slot"] = slotValue;
-                     newRow["Port"] = portValue;
-
-                 }
-
-                 newRow["Link"] = newRow.ContainsKey("Link") ? newRow["Link"] : "UnknownLinkValue";
-                 newRow["TID"] = newRow.ContainsKey("TID") ? newRow["TID"] : "UnknownTIDValue";
-                 newRow["FarEndTID"] = newRow.ContainsKey("FarEndTID") ? newRow["FarEndTID"] : "UnknownFarEndTIDValue"; ;
-                 newRow["Slot"] = newRow.ContainsKey("Slot") ? newRow["Slot"] : "UnknownSlotValue";
-                 newRow["Port"] = newRow.ContainsKey("Port") ? newRow["Port"] : "UnknownPortValue"; 
-                 return newRow;
-
-             }).ToArray();
-         }*/
-
+        //FILE 1
         public Dictionary<string, string>[] AddToEndClmns(Dictionary<string, string>[] dataDictArray)
         {
             List<Dictionary<string, string>> resultRows = new List<Dictionary<string, string>>();
@@ -269,7 +218,6 @@ namespace Project_TRAILLL.Services
 
                     ExtractLinkFromObject(objectValue, out string linkValue);
                     newRow["Link"] = linkValue;
-
                     newRow["TID"] = ExtractTIDFromObject(objectValue);
                     newRow["FarEndTID"] = ExtractFarEndTIDFromObject(objectValue);
                 }
@@ -277,11 +225,8 @@ namespace Project_TRAILLL.Services
                 newRow["Link"] = newRow.ContainsKey("Link") ? newRow["Link"] : "UnknownLinkValue";
                 newRow["TID"] = newRow.ContainsKey("TID") ? newRow["TID"] : "UnknownTIDValue";
                 newRow["FarEndTID"] = newRow.ContainsKey("FarEndTID") ? newRow["FarEndTID"] : "UnknownFarEndTIDValue";
-
-                // Call the method to extract slot and port values
-                ExtractSlotAndPortFromLink(newRow, resultRows);
+                ExtractSlotAndPort(newRow, resultRows);
             }
-
             return resultRows.ToArray();
         }
 
@@ -294,7 +239,7 @@ namespace Project_TRAILLL.Services
 
             if (firstUnderscoreIndex >= 0 && lastUnderscoreIndex >= 0 && firstUnderscoreIndex < lastUnderscoreIndex)
             {
-                return objectValue.Substring(firstUnderscoreIndex + 2, lastUnderscoreIndex - firstUnderscoreIndex - 2);
+                return objectValue.Substring(firstUnderscoreIndex + 2, lastUnderscoreIndex - firstUnderscoreIndex - 2);//starting ind for the substring , lenght of the substring
             }
 
             return "UnknownTIDValue";
@@ -312,7 +257,7 @@ namespace Project_TRAILLL.Services
             return "UnknownFarEndTIDValue";
         }
 
-        public void ExtractLinkFromObject(string objectValue, out string link)
+        public void ExtractLinkFromObject(string objectValue, out string link) //var is passed to the mthod by reference
         {
             link = "UnknownLinkValue";
 
@@ -331,7 +276,6 @@ namespace Project_TRAILLL.Services
                     objectValue = objectValue.Substring(2);
                 }
 
-
                 while (objectValue.EndsWith("/1"))
                 {
                     objectValue = objectValue.Substring(0, objectValue.Length - 2);
@@ -348,12 +292,12 @@ namespace Project_TRAILLL.Services
                 link = objectValue;
             }
         }
-
-        
-        public void ExtractSlotAndPortFromLink(Dictionary<string,string> row, List<Dictionary<string,string>> resultRows)
+  
+        public void ExtractSlotAndPort(Dictionary<string,string> row, List<Dictionary<string,string>> resultRows)
         {
             if (row.ContainsKey("Link"))
             {
+                //Case 1: 2 rows for slot
                 string linkValue = row["Link"];
                 var slotValues = linkValue.Split('+');
 
@@ -373,7 +317,7 @@ namespace Project_TRAILLL.Services
                 }
                 else
                 {
-                    // Handle Case 2: Single slot
+                    //Case 2: Single slot
                     string[] slotPort = slotValues[0].Split('/');
                     if (slotPort.Length == 2)
                     {
@@ -385,6 +329,7 @@ namespace Project_TRAILLL.Services
             }
         }
 
+        //FILE 2 
         public Dictionary<string, string>[] AddToEndClmnsFile2(Dictionary<string, string>[] dataDictArray)
         {
             return dataDictArray.Select(row =>
@@ -397,84 +342,41 @@ namespace Project_TRAILLL.Services
                      ExtractSlot(objectValue, out string slotValue);
                      newRow["Slot"] = slotValue;
                     
-                   /* List<Dictionary<string, string>> rowsWithSlots = ExtractSlot(objectValue, newRow);
-                    newRow = rowsWithSlots.Last();*/
 
-                    ExtractPort(objectValue, out string portValue);
-                    newRow["Port"]= portValue;
+                     ExtractPort(objectValue, out string portValue);
+                     newRow["Port"]= portValue;
                 }
 
                 newRow["Slot"] = newRow.ContainsKey("Slot") ? newRow["Slot"] : "UnknownSlotValue";
                 newRow["Port"] = newRow.ContainsKey("Port") ? newRow["Port"] : "UnknownPortValue";
                 return newRow;
-
+                
             }).ToArray();
 
         }
 
-        public static void ExtractSlot(string objectValue, out string slot)
-        {
-            slot = "UnknownSlotValue";
-            
-            // Split the Object value by "+" and take the first part
-            string[] objectParts = objectValue.Split('+');
+         public void ExtractSlot(string objectValue, out string slot)
+         {
+             slot = "UnknownSlotValue";
 
-            if (objectParts.Length > 0)
-            {
-                // Replace ".1" with "+"
-                string slotPart = objectParts[0].Replace(".1", "+");
+             // Split the Object value by "+" and take the first part
+             string[] objectParts = objectValue.Split('+');
 
-                if (slotPart.EndsWith("/1"))
-                {
-                    slotPart = slotPart.Substring(0, slotPart.Length - 2);
-                }
+             if (objectParts.Length > 0)
+             {
+                 // Replace ".1" with "+"
+                 string slotPart = objectParts[0].Replace(".1", "+");
 
-                slot = slotPart;
-            }
-            
-        }
+                 if (slotPart.EndsWith("/1"))
+                 {
+                     slotPart = slotPart.Substring(0, slotPart.Length - 2);
+                 }
 
-       /* public static List<Dictionary<string, string>> ExtractSlot(string objectValue, Dictionary<string, string> originalRow)
-        {
-            // Create a list to store the resulting rows
-            List<Dictionary<string, string>> resultRows = new List<Dictionary<string, string>>();
+                 slot = slotPart;
+             }
+         }
 
-            // Split the Object value by "+" to handle cases like "1/15.1/1" or "1/15+16/1"
-            if (objectValue.Contains("+"))
-            {
-                string[] slotParts = objectValue.Split('+');
-
-                foreach (string slotPart in slotParts)
-                {
-                    string slotValue = slotPart.Replace(".1", "+");
-
-                    if (slotValue.EndsWith("/1"))
-                    {
-                        slotValue = slotValue.Substring(0, slotValue.Length - 2);
-                    }
-
-                    Dictionary<string, string> newRow = new Dictionary<string, string>(originalRow);
-                    newRow["Slot"] = slotValue;
-                    resultRows.Add(newRow);
-                }
-            }
-            else
-            {
-                string slotValue = objectValue.Replace(".1", "+");
-
-                if (slotValue.EndsWith("/1"))
-                {
-                    slotValue = slotValue.Substring(0, slotValue.Length - 2);
-                }
-
-                originalRow["Slot"] = slotValue;
-                resultRows.Add(originalRow);
-            }
-
-            return resultRows;
-        }*/
-
-        public static void ExtractPort(string objectValue, out string port)
+        public void ExtractPort(string objectValue, out string port)
         {
             port = "UnknownPortValue";
 
