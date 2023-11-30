@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33627.172
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Project_TRAILLL", "Project_TRAILLL\Project_TRAILLL.csproj", "{C3B8F770-4AB1-4B51-85B2-530029703623}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Baby_NI_Project", "Project_TRAILLL\Baby_NI_Project.csproj", "{C3B8F770-4AB1-4B51-85B2-530029703623}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Retreivedata", "Retreivedata\Retreivedata.csproj", "{E35FED0D-2C4D-467E-B85E-E142194B7044}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Baby_NI_RetrieveData", "Retreivedata\Baby_NI_RetrieveData.csproj", "{E35FED0D-2C4D-467E-B85E-E142194B7044}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
