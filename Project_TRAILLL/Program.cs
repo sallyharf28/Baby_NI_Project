@@ -11,30 +11,23 @@ builder.Services.AddControllers();
 //Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-//////
-///
-//var services = new ServiceCollection();
+
+
+Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
+builder.Host.UseSerilog(); //log on each request
 
 builder.Services.AddScoped <IWatcherService, WatcherService>();
 builder.Services.AddScoped<IParserService,ParserService>();
 builder.Services.AddScoped <ILoaderService,LoaderService>();
 builder.Services.AddScoped <IAggregationService, AggregationService>(); 
 
-//builder.Services.AddHttpLogging(httpLogging =>
-//{
-//    httpLogging.LoggingFields = HttpLoggingFields.All;
-//});
+builder.Services.AddHttpLogging(httpLogging =>
+{
+    httpLogging.LoggingFields = HttpLoggingFields.All;
+});
 
 var app = builder.Build();
 
-
-//var serviceProvider = services.BuildServiceProvider();
-//
-//var watcherService = serviceProvider.GetRequiredService<IWatcherService>();
-//watcherService.Main();
-////////
-//WatcherService watcherService = new WatcherService();
-//watcherService.Main();
 
 
 
@@ -45,9 +38,10 @@ using (var scope = app.Services.CreateScope())
     watcherService.Main();
 
 }
-//var logger = new LoggerConfiguration()
-//    .WriteTo.File("Logs/logger.txt",rollingInterval:RollingInterval.Hour)
-//    .CreateLogger();
+ //Log.Logger = new LoggerConfiguration()
+ //   .WriteTo.File("Logs/logger.txt", rollingInterval: RollingInterval.Hour)
+ //   .CreateLogger();
+
 
 
 
@@ -57,7 +51,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseHttpLogging();   
+
+
+
+//app.UseHttpLogging();   
 
 app.UseHttpsRedirection();
 

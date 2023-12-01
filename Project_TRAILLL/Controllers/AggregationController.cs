@@ -5,7 +5,7 @@ namespace Project_TRAILLL.Controllers
 {
    
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/aggregate")]
     public class AggregationController :ControllerBase
     {
         private readonly IAggregationService _aggregationService;
@@ -18,30 +18,18 @@ namespace Project_TRAILLL.Controllers
 
         [HttpPost("hourly")]
         public IActionResult AggregateHourlyData()
-        {
-            try
-            {
-                _aggregationService.AggragateHourlyData();
-                return Ok("Hourly aggregation triggered successfully.");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Error triggering hourly aggregation: {ex.Message}");
-            }
+        { 
+            _aggregationService.AggragateHourlyData();
+            return Ok("Hourly aggregation triggered successfully.");
+           
         }
 
         [HttpPost("daily")]
         public IActionResult AggregateDailyData()
         {
-            try
-            {
-                _aggregationService.AggregateDailyData();
-                return Ok("Daily aggregation triggered successfully.");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Error triggering daily aggregation: {ex.Message}");
-            }
+           _aggregationService.AggregateDailyData();
+            return Ok("Daily aggregation triggered successfully.");
+            
         }
     }
 }

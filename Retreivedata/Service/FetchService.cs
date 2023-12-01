@@ -11,11 +11,6 @@ namespace Retreivedata.Service
         public string connectionString { get; set; }
 
 
-        //public FetchService(string connectionString)
-        //{
-        //    this.connectionString = connectionString;
-        //}
-
         public List<List<AggregatedData>> GetAllAggregatedData()
         {
             List<List<AggregatedData>> allData = new List<List<AggregatedData>>();
@@ -31,8 +26,7 @@ namespace Retreivedata.Service
         }
 
 
-
-        //HOURLY NEALIAS
+        ///HOURLY NEALIAS
         public List<AggregatedData> GetHourlyNETypeAggregatedData()
         {
             List<AggregatedData> result = new List<AggregatedData>();
@@ -42,11 +36,10 @@ namespace Retreivedata.Service
                 {
                     connection.Open();
 
-                    using (VerticaCommand command = new VerticaCommand("" +
-                        "SELECT " +
-                        "DATETIME_KEY, NETYPE,  MAX(RSL_INPUT_POWER) AS RSL_INPUT_POWER, MAX(MAX_RX_LEVEL) AS MAX_RX_LEVEL, " +
-                        "CAST(ABS(MAX(RSL_INPUT_POWER))-ABS(MAX(MAX_RX_LEVEL))AS NUMERIC(10,2)) AS RSL_DEVIATION " +
-                        "FROM TRANS_MW_AGG_SLOT_HOURLY GROUP BY 1,2;", connection))
+                    using (VerticaCommand command = new VerticaCommand( "SELECT " +
+                                                                        "DATETIME_KEY, NETYPE,  MAX(RSL_INPUT_POWER) AS RSL_INPUT_POWER, MAX(MAX_RX_LEVEL) AS MAX_RX_LEVEL, " +
+                                                                        "CAST(ABS(MAX(RSL_INPUT_POWER))-ABS(MAX(MAX_RX_LEVEL))AS NUMERIC(10,2)) AS RSL_DEVIATION " +
+                                                                        "FROM TRANS_MW_AGG_SLOT_HOURLY GROUP BY 1,2;", connection))
                     {
                         using (VerticaDataReader reader = command.ExecuteReader())
                         {
@@ -83,7 +76,10 @@ namespace Retreivedata.Service
                 {
                     connection.Open();
 
-                    using (VerticaCommand command = new VerticaCommand("SELECT DATETIME_KEY, NEALIAS,  MAX(RSL_INPUT_POWER) AS RSL_INPUT_POWER,   MAX(MAX_RX_LEVEL) AS MAX_RX_LEVEL, CAST(ABS(MAX(RSL_INPUT_POWER))-ABS(MAX(MAX_RX_LEVEL))AS NUMERIC(10,2)) AS RSL_DEVIATION FROM TRANS_MW_AGG_SLOT_HOURLY GROUP BY 1,2;", connection))
+                    using (VerticaCommand command = new VerticaCommand("SELECT" +
+                                                                        " DATETIME_KEY, NEALIAS,  MAX(RSL_INPUT_POWER) AS RSL_INPUT_POWER,   MAX(MAX_RX_LEVEL) AS MAX_RX_LEVEL," +
+                                                                        " CAST(ABS(MAX(RSL_INPUT_POWER))-ABS(MAX(MAX_RX_LEVEL))AS NUMERIC(10,2)) AS RSL_DEVIATION" +
+                                                                        " FROM TRANS_MW_AGG_SLOT_HOURLY GROUP BY 1,2;", connection))
                     {
                         using (VerticaDataReader reader = command.ExecuteReader())
                         {
@@ -112,7 +108,7 @@ namespace Retreivedata.Service
         }
 
         
-        ////DAILY NETYPE
+        ///DAILY NETYPE
         public List<AggregatedData> GetDailyNeAliasAggregatedData()
         {
             List<AggregatedData> result = new List<AggregatedData>();
@@ -123,7 +119,10 @@ namespace Retreivedata.Service
                 {
                     connection.Open();
 
-                    using (VerticaCommand command = new VerticaCommand("SELECT DATETIME_KEY, NEALIAS, MAX(RSL_INPUT_POWER) AS RSL_INPUT_POWER, MAX(MAX_RX_LEVEL) AS MAX_RX_LEVEL,CAST(ABS(MAX(RSL_INPUT_POWER))-ABS(MAX(MAX_RX_LEVEL))AS NUMERIC(10,2)) AS RSL_DEVIATION FROM TRANS_MW_AGG_SLOT_DAILY GROUP BY 1,2;", connection))
+                    using (VerticaCommand command = new VerticaCommand("SELECT " +
+                                                                        "DATETIME_KEY, NEALIAS, MAX(RSL_INPUT_POWER) AS RSL_INPUT_POWER, MAX(MAX_RX_LEVEL) AS MAX_RX_LEVEL," +
+                                                                        "CAST(ABS(MAX(RSL_INPUT_POWER))-ABS(MAX(MAX_RX_LEVEL))AS NUMERIC(10,2)) AS RSL_DEVIATION" +
+                                                                        " FROM TRANS_MW_AGG_SLOT_DAILY GROUP BY 1,2;", connection))
                     {
                         using (VerticaDataReader reader = command.ExecuteReader())
                         {
@@ -162,7 +161,10 @@ namespace Retreivedata.Service
                 {
                     connection.Open();
 
-                    using (VerticaCommand command = new VerticaCommand("SELECT DATETIME_KEY, NETYPE, MAX(RSL_INPUT_POWER) AS RSL_INPUT_POWER, MAX(MAX_RX_LEVEL) AS MAX_RX_LEVEL,CAST(ABS(MAX(RSL_INPUT_POWER))-ABS(MAX(MAX_RX_LEVEL))AS NUMERIC(10,2)) AS RSL_DEVIATION FROM TRANS_MW_AGG_SLOT_DAILY GROUP BY 1,2;", connection))
+                    using (VerticaCommand command = new VerticaCommand("SELECT" +
+                                                                        " DATETIME_KEY, NETYPE, MAX(RSL_INPUT_POWER) AS RSL_INPUT_POWER, MAX(MAX_RX_LEVEL) AS MAX_RX_LEVEL," +
+                                                                        "CAST(ABS(MAX(RSL_INPUT_POWER))-ABS(MAX(MAX_RX_LEVEL))AS NUMERIC(10,2)) AS RSL_DEVIATION " +
+                                                                        "FROM TRANS_MW_AGG_SLOT_DAILY GROUP BY 1,2;", connection))
                     {
                         using (VerticaDataReader reader = command.ExecuteReader())
                         {

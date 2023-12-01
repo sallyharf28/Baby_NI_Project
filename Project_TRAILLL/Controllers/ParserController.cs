@@ -19,15 +19,9 @@ namespace Project_TRAILLL.Controllers
         [HttpPost]
         public IActionResult ProcessTextFiles()
         {
-            try
-            {
-                _parserservice.ProcessTextFile();
-                return Ok("Text file processing initiated successfully.");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Error processing text files: {ex.Message}");
-            }
+           _parserservice.ProcessTextFile();
+           return Ok("Text file processing initiated successfully.");
+         
         }
     }
 

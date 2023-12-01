@@ -5,12 +5,7 @@ namespace Project_TRAILLL.Services
     public class AggregationService : IAggregationService
     {
         public string connectionString = "Server=10.10.4.231;Database=test;User=bootcamp4;Password=bootcamp42023";
-        //  public string connectionString;
-        //public AggregationService(string connectionString)
-        //{
-        //    this.connectionString = connectionString;
-        //}
-
+       
         public void AggragateHourlyData()
         {
             try
@@ -24,7 +19,7 @@ namespace Project_TRAILLL.Services
                         using (VerticaCommand clearCommand = new VerticaCommand("DELETE FROM TRANS_MW_AGG_SLOT_HOURLY;", connection))
                         {
                             clearCommand.ExecuteNonQuery();
-                            Console.WriteLine("Data Cleared Successfully.");
+                            //Console.WriteLine("Data Cleared Successfully.");
                         }
 
                     }
@@ -55,14 +50,12 @@ namespace Project_TRAILLL.Services
                 Console.WriteLine($"Error in hourly aggregation: {ex.Message}");
             }
         }
-
-        
+     
         public void AggregateDailyData()
         {
             try
             {
-               // string connectionString = "Server=10.10.4.231;Database=test;User=bootcamp4;Password=bootcamp42023";
-
+              
                 using (VerticaConnection connection = new VerticaConnection(connectionString))
                 {
                     connection.Open();

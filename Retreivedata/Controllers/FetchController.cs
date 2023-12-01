@@ -18,31 +18,7 @@ namespace Retreivedata.Controllers
             Console.WriteLine("im in");
         }
 
-        /*
-        public IActionResult Index()
-        {
-            var hourlyData = _fetchService.GetHourlyAggregatedData();
-            var dailyData = _fetchService.GetDailyAggregatedData();
-            List<string> aggregatedData = new List<string>();
-            aggregatedData.Add(hourlyData.ToString());
-            aggregatedData.Add(dailyData.ToString());
-            Console.WriteLine(aggregatedData.Count);
-            return Ok(aggregatedData);
-        }
-        */
-
-        //[HttpGet("hourly")]
-        //public ActionResult<List<AggregatedData>> GetHourlyAggregatedData(bool ne)
-        //{
-        //    var hourlyData = _fetchService.GetHourlyAggregatedData();
-        //    return Ok(hourlyData);
-        //}
-
-
-
-        //[HttpGet("daily")]
-        //public ActionResult<List<DailyAggregatedData>> GetDailyAggregatedData()
-        //{
+       
 
         [HttpGet("allAggregatedData")]
         public ActionResult<List<AggregatedData>> GetAllAggregatedData()
