@@ -2,15 +2,16 @@
 
 # Baby_NI_Project_BE_YUVO
 
-On the Back-end, Services with there Interfaces are created ParserService, responsible for detecting and parsing telco data files based on provided specifications; LoaderService, connecting to a Vertica database to load parsed CSV files into designated tables; and AggregatorService, detecting newly loaded data and aggregating it into hourly and daily Key Performance Indicators (KPIs). These KPIs include RSL_DEVIATION, RSL_INPUT_POWER, and MAX_RX_LEVEL, as outlined in the ISD document. The system ensures logging for parsing, loading, and aggregating processes and allows for re-execution if needed(found as bool in WatcherService class, In OnCreated Function), Inaddition to another project created for the FetchService purpose.
+On the Back-end, Services with there Interfaces are created ParserService, responsible for detecting and parsing telco data files based on provided specifications; LoaderService, connecting to a Vertica database to load parsed CSV files into designated tables; and AggregatorService, detecting newly loaded data and aggregating it into hourly and daily Key Performance Indicators (KPIs). These KPIs include RSL_DEVIATION, RSL_INPUT_POWER, and MAX_RX_LEVEL, as outlined in the ISD document. The system ensures logging for parsing, loading, and aggregating processes and allows for re-execution if needed(found as bool in WatcherService class, In OnCreated Function), Inaddition to another project(Baby_NI RetrieveData) created for the FetchService purpose.
 
 ## Installation
 
+Clone the GitHub repository:
 ```bash
 git clone (https://github.com/sallyharf28/Baby_NI_Project.git)
 
 ```
-use Visual Studio or the dotnet build command to build the project.
+Build the project using Visual Studio or the following command:
 
 ```bash
 dotnet build
@@ -18,7 +19,7 @@ dotnet build
 open the project solution file (.sln) using the IDE.
 
 ## Usage
-Connect to Vertica Database
+Connection to Vertica Database details:
 ```bash
     Server=10.10.4.231;
     Database=test;
