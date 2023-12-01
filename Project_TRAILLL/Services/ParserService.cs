@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections;
+using Serilog;
 
 namespace Project_TRAILLL.Services
 {
@@ -20,10 +21,8 @@ namespace Project_TRAILLL.Services
         private readonly ILoaderService _loaderService;
        
         public ParserService(ILoaderService loaderService)
-        {
-          
-            _loaderService = loaderService;
-            
+        {  
+            _loaderService = loaderService;          
         }
 
         public void ProcessTextFile()
@@ -81,7 +80,7 @@ namespace Project_TRAILLL.Services
                 File.Delete(filePath);
         
                 Console.WriteLine($"Converted {fileName} to CSV format.");
-               // _logger.LogInformation("Converted {fileName} to CSV format.", fileName);
+                Log.Information($"Converted {fileName} to CSV format.");
 
                 _loaderService.LoadCsvFile(csvFilePath);
                 

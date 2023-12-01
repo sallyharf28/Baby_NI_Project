@@ -15,10 +15,8 @@ namespace Retreivedata.Controllers
         {
             _fetchService = fetchService;
             _fetchService.connectionString = "Server=10.10.4.231;Database=test;User=bootcamp4;Password=bootcamp42023";
-            Console.WriteLine("im in");
-        }
-
-       
+            
+        }  
 
         [HttpGet("allAggregatedData")]
         public ActionResult<List<AggregatedData>> GetAllAggregatedData()

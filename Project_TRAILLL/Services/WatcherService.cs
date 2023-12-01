@@ -67,7 +67,7 @@ namespace Project_TRAILLL.Services
                         }
                         else
                         {
-                            // File is already parsed, update the Parsed column to true
+                            // File is already parsed, update the reparsed column to true
                             UpdateParsedStatus(fileName, true);
                             Console.WriteLine($"File {fileName} is already parsed.");
                         }
@@ -85,7 +85,7 @@ namespace Project_TRAILLL.Services
                 watcher.EnableRaisingEvents = true;
 
                 Console.WriteLine("File monitoring started. Press Enter to exit.");
-                Log.Information("Testings");
+      
 
                 Console.ReadLine();
             }
@@ -108,7 +108,7 @@ namespace Project_TRAILLL.Services
                     {
                         Console.WriteLine($"The modification date of {fileName} is different.");
 
-                        //REEXECUTION IS SET TRUE => WILL re execute the file else delete it
+                        //REEXECUTION// IF SET TRUE => WILL reexecute the file else delete it
                         //SET FALSE SO IT WONT PARSE IT AGAIN
                         shouldParse = false;
                     }

@@ -5,7 +5,7 @@ namespace Project_TRAILLL.Controllers
 {
    
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/loader")]
     public class LoaderController : ControllerBase
     {
         private readonly ILoaderService _loaderService;

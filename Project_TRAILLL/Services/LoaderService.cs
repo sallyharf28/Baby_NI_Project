@@ -4,6 +4,7 @@ using System.IO;
 using System.Data;
 using System.Data.Common;
 using Vertica.Data.VerticaClient;
+using Serilog;
 
 namespace Project_TRAILLL.Services
 {
@@ -14,7 +15,6 @@ namespace Project_TRAILLL.Services
         public LoaderService(IAggregationService aggregationService)
         {
             _aggregationService = aggregationService;
-
         }
 
         public void LoadCsvFile(string csvFilePath)
@@ -23,7 +23,7 @@ namespace Project_TRAILLL.Services
             // Database connection string
             string connectionString = "Server=10.10.4.231;Database=test;User=bootcamp4;Password=bootcamp42023";
 
-            // the target table name
+            // Define the target table name
             string targetTableName;
 
             if (csvFilePath.Contains("SOEM1_TN_RADIO_LINK_POWER"))
@@ -55,14 +55,16 @@ namespace Project_TRAILLL.Services
                     }
 
                     Console.WriteLine($"Loaded {csvFilePath} into {targetTableName} in Vertica.");
+                    Log.Information($"Loaded {csvFilePath} into {targetTableName} in Vertica.");
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error: {ex.Message}");
+                Log.Error($"Error: {ex.Message}");
             }
 
-
+            
             _aggregationService.AggragateHourlyData();
             _aggregationService.AggregateDailyData();
         }

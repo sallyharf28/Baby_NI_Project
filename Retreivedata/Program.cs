@@ -33,10 +33,6 @@ builder.Services.AddCors(options =>
 
 });
 
-builder.Services.AddHttpLogging(httpLogging =>
-{
-    httpLogging.LoggingFields = HttpLoggingFields.All;
-});
 
 var app = builder.Build();
 
@@ -48,7 +44,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseHttpLogging();
 
 app.UseHttpsRedirection();
 

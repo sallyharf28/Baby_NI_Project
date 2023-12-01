@@ -1,4 +1,5 @@
-﻿using Vertica.Data.VerticaClient;
+﻿using Serilog;
+using Vertica.Data.VerticaClient;
 
 namespace Project_TRAILLL.Services
 {
@@ -19,7 +20,7 @@ namespace Project_TRAILLL.Services
                         using (VerticaCommand clearCommand = new VerticaCommand("DELETE FROM TRANS_MW_AGG_SLOT_HOURLY;", connection))
                         {
                             clearCommand.ExecuteNonQuery();
-                            //Console.WriteLine("Data Cleared Successfully.");
+                            
                         }
 
                     }
@@ -43,11 +44,13 @@ namespace Project_TRAILLL.Services
                     }
 
                     Console.WriteLine("Hourly aggregation completed.");
+                    Log.Information("Hourly aggregation completed.");
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in hourly aggregation: {ex.Message}");
+                Log.Error($"Error in hourly aggregation: {ex.Message}");
             }
         }
      
@@ -86,11 +89,13 @@ namespace Project_TRAILLL.Services
                         command.ExecuteNonQuery();
                     }
                     Console.WriteLine("Daily aggregation completed.");
+                    Log.Information("Daily aggregation completed.");
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error in daily aggregation: {ex.Message}");
+                Log.Error($"Error in daily aggregation: {ex.Message}");
             }
         }
         private bool TableExists(VerticaConnection connection, string tableName)

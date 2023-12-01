@@ -2,7 +2,6 @@
 {
     public interface IAggregationService
     {
-      //  string connectionString { get; set; }
         void AggragateHourlyData();
 
         void AggregateDailyData();

@@ -4,7 +4,7 @@ using Project_TRAILLL.Services;
 namespace Project_TRAILLL.Controllers
 {      
         [ApiController]
-        [Route("api/[Controller]")]
+        [Route("api/parser")]
     public class ParserController :  ControllerBase
     {
         
@@ -14,15 +14,7 @@ namespace Project_TRAILLL.Controllers
         {
             _parserservice = parserservice;
         }
-
-
-        [HttpPost]
-        public IActionResult ProcessTextFiles()
-        {
-           _parserservice.ProcessTextFile();
-           return Ok("Text file processing initiated successfully.");
-         
-        }
+ 
     }
 
 }
