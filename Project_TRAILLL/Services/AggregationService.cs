@@ -20,9 +20,7 @@ namespace Project_TRAILLL.Services
                         using (VerticaCommand clearCommand = new VerticaCommand("DELETE FROM TRANS_MW_AGG_SLOT_HOURLY;", connection))
                         {
                             clearCommand.ExecuteNonQuery();
-                            
                         }
-
                     }
                     
                     using (VerticaCommand command = new VerticaCommand(@"INSERT INTO TRANS_MW_AGG_SLOT_HOURLY
@@ -57,8 +55,7 @@ namespace Project_TRAILLL.Services
         public void AggregateDailyData()
         {
             try
-            {
-              
+            { 
                 using (VerticaConnection connection = new VerticaConnection(connectionString))
                 {
                     connection.Open();
@@ -72,7 +69,6 @@ namespace Project_TRAILLL.Services
                         }
                     }
 
-                    // Perform daily aggregation here
                     using (VerticaCommand command = new VerticaCommand(@"INSERT INTO TRANS_MW_AGG_SLOT_DAILY
                                                                         SELECT
                                                                                 DATE_TRUNC('DAY', TIME) AS ""TIME"",
