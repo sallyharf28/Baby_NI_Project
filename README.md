@@ -35,6 +35,7 @@ Connection to Vertica Database details:
 ```
 
 ## Steps
+
 Database Tables:
 ```bash
 CREATE TABLE FileMetadata (
@@ -117,5 +118,5 @@ CREATE TABLE TRANS_MW_AGG_SLOT_DAILY(
 )
 ```
 
-After Running the Baby_NI_Project project and Baby_NI_RetrieveData project either in parrallel or separatly , The Frontend can be started.  
+To ensure the proper functioning of the frontend, it is essential to run the Baby_NI_RetrieveData project beforehand.
 
