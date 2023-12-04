@@ -11,12 +11,12 @@ Clone the GitHub repository:
 git clone (https://github.com/sallyharf28/Baby_NI_Project.git)
 
 ```
-Build the project using Visual Studio or the following command:
+Run the Project after cloning:
 
 ```bash
-dotnet build
+Startup Project
 ```
-open the project solution file (.sln) using the IDE.
+open the project solution file (.sln) using the IDE. //(If installed as zip file)
 
 ## Usage
 Connection to Vertica Database details:
