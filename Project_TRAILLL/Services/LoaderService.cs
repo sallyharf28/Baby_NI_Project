@@ -23,7 +23,7 @@ namespace Project_TRAILLL.Services
             // Database connection string
             string connectionString = "Server=10.10.4.231;Database=test;User=bootcamp4;Password=bootcamp42023";
 
-            // Define the target table name
+            // target table name
             string targetTableName;
 
             if (csvFilePath.Contains("SOEM1_TN_RADIO_LINK_POWER"))
